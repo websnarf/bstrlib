@@ -588,9 +588,14 @@ test.cpp        - C++ unit/regression test for bstrwrap.cpp
 bsafe.c         - C runtime stubs to abort usage of unsafe C functions.
 bsafe.h         - C header file for bsafe.c functions.
 
-C projects need only include bstrlib.h and compile/link bstrlib.c to use the
-bstring library.  C++ projects need to additionally include bstrwrap.h and
-compile/link bstrwrap.cpp.  For both, there may be a need to make choices
+utf8util.c      - C implemention of generic utf8 parsing functions.
+utf8util.h      - C head file for generic utf8 parsing functions.
+buniutil.c      - C implemention utf8 bstring packing and unpacking functions.
+buniutil.c      - C header file for utf8 bstring functions.
+
+C modules need only include bstrlib.h and compile/link bstrlib.c to use the
+basic bstring library.  C++ projects need to additionally include bstrwrap.h
+and compile/link bstrwrap.cpp.  For both, there may be a need to make choices
 about feature configuration as described in the "Configurable compilation
 options" in the section above.
 
@@ -1977,6 +1982,112 @@ The macros
 
 ===============================================================================
 
+Unicode functions
+-----------------
+
+    The two modules utf8util.c and buniutil.c implement basic functions for
+    parsing and collecting Unicode data in the UTF8 format.  Unicode is
+    described by a sequence of "code points" which are values between 0 and
+    1114111 inclusive mapped to symbol content corresponding to nearly all
+    the standardized scripts of the world.
+
+    The semantics of Unicode code points is varied and complicated.  The
+    base support of the better string library does not attempt to perform
+    any interpretation of these code points.  The better string library
+    solely provides support for iterating through unicode code points,
+    appending and extracting code points to and from bstrings, and parsing
+    UTF8 and UTF16 from raw data.
+
+    To use these functions compile and link utf8util.c and buniutil.c
+
+    ..........................................................................
+
+    extern void utf8IteratorInit (struct utf8Iterator* iter,
+                                  unsigned char* data, int slen);
+
+    Initialize a unicode utf8 iterator to traverse an array of utf8 encoded
+    code points pointed to by data, with length slen from the start.  The
+    iterator iter is only valid for as long as the array it is pointed to
+    is valid and not modified.
+
+    ..........................................................................
+
+    extern void utf8IteratorUninit (struct utf8Iterator* iter);
+
+    Invalidate utf8 iterator.
+
+    ..........................................................................
+
+    extern cpUcs4 utf8IteratorGetNextCodePoint (struct utf8Iterator* iter,
+                                                cpUcs4 errCh);
+
+    Parse code point the iterator is pointing at and advance the iterator to
+    the next code point.  If the iterator was pointing at a valid code point
+    the code point is returned, otherwise, errCh will be returned.
+
+    ..........................................................................
+
+    extern cpUcs4 utf8IteratorGetCurrCodePoint (struct utf8Iterator* iter,
+                                                cpUcs4 errCh);
+
+    Parse code point the iterator is pointing at.  If the iterator was
+    pointing at a valid code point the code point is returned, otherwise,
+    errCh will be returned.
+
+    ..........................................................................
+
+    extern int utf8ScanBackwardsForCodePoint (unsigned char* msg, int len,
+                                              int pos, cpUcs4* out);
+
+    From the position "pos" in the array msg of length len, search for the
+    last position before or at pos where from which a valid Unicode code
+    point can be parsed.  If such an offset is found it is returned otherwise
+    a negative value is returned.  The code point parsed is put into *out if
+    it is not NULL.
+
+    ..........................................................................
+
+    extern int buIsUTF8Content (const_bstring bu);
+
+    Scan a bstring and determine if it is made entirely of unicode code 
+    valid points.  If it is, 1 is returned, otherwise 0 is returned.
+
+    ..........................................................................
+
+    extern int buAppendBlkUcs4 (bstring b, const cpUcs4* bu, int len,
+                                cpUcs4 errCh);
+
+    Append the code points passed in the UCS4 format (raw numbers) in the
+    array bu of length len.  Any unparsable characters are replaced by errCh.
+    If errCh is not a valid Unicode code point, then parsing errors will cause
+    BSTR_ERR to be returned.
+
+    ..........................................................................
+
+    extern int buGetBlkUTF16 (cpUcs2* ucs2, int len, cpUcs4 errCh,
+                              const_bstring bu, int pos);
+
+    Convert a string of UTF8 codepoints (bu), skipping the first pos, into a 
+    sequence of UTF16 encoded code points.  Returns the number of UCS2 16-bit
+    words written to the output.  No more than len words are written to the
+    target array ucs2.  If any code point in bu is unparsable, it will be
+    translated to errCh.
+
+    ..........................................................................
+
+    extern int buAppendBlkUTF16 (bstring bu, const cpUcs2* utf16, int len,
+                                 cpUcs2* bom, cpUcs4 errCh);
+
+    Append an array of UCS2 code points (utf16) to UTF8 codepoints (bu).  Any
+    invalid code point is replaced by errCh.  If errCh is itself not a
+    valid code point, then this translation will halt upon the first error
+    and return BSTR_ERR.  Otherwise BSTR_OK is returned.  If a byte order mark
+    has been previously read, it may be passed in as bom, otherwise if *bom is
+    set to 0, it will be filled in with the BOM as read from the first
+    character if it is a BOM.
+
+===============================================================================
+
 The bstest module
 -----------------
 
@@ -3197,5 +3308,6 @@ Michael Hsieh
 Richard A. Smith
 Simon Ekstrom
 Wayne Scott
+Zed A. Shaw
 
 ===============================================================================

@@ -1,7 +1,9 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2008, and is covered by the BSD open source 
- * license and the GPL. Refer to the accompanying documentation for details 
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
+ * license and the GPL. Refer to the accompanying documentation for details
  * on usage and license.
  */
 
@@ -9,7 +11,7 @@
  * bstraux.c
  *
  * This file is not necessarily part of the core bstring library itself, but
- * is just an auxilliary module which includes miscellaneous or trivial 
+ * is just an auxilliary module which includes miscellaneous or trivial
  * functions.
  */
 
@@ -956,11 +958,12 @@ bstring b, t;
 			/* Double size, but deal with unusual case of numeric
 			   overflows */
 
-			if ((m = b->mlen << 1)   <= b->mlen &&
-			    (m = b->mlen + 1024) <= b->mlen &&
-			    (m = b->mlen + 16)   <= b->mlen &&
-			    (m = b->mlen + 1)    <= b->mlen) t = NULL;
-			else t = bfromcstralloc (m, "");
+			if (b->mlen <= INT_MAX / 2) m = b->mlen << 1;
+			else if (b->mlen <= INT_MAX - 1024) m = b->mlen + 1024;
+			else if (b->mlen <= INT_MAX - 16) m = b->mlen + 16;
+			else if (b->mlen <= INT_MAX - 1) m = b->mlen + 1;
+			else return NULL;
+			t = bfromcstralloc (m, "");
 
 			if (t) memcpy (t->data, b->data, i);
 			bSecureDestroy (b); /* Cleanse previous buffer */
@@ -1130,4 +1133,3 @@ void * parm;
 	free (ws);
 	return parm;
 }
-

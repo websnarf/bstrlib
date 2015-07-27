@@ -1559,9 +1559,9 @@ bstring auxf = (bstring) find;
 bstring auxr = (bstring) repl;
 
 	if (b == NULL || b->data == NULL || find == NULL ||
-	    find->data == NULL || repl == NULL || repl->data == NULL ||
-	    pos < 0 || find->slen <= 0 || b->mlen < 0 || b->slen > b->mlen ||
-	    b->mlen <= 0 || b->slen < 0 || repl->slen < 0) return BSTR_ERR;
+		find->data == NULL || repl == NULL || repl->data == NULL ||
+		pos < 0 || find->slen <= 0 || b->mlen < 0 || b->slen > b->mlen ||
+		b->mlen <= 0 || b->slen < 0 || repl->slen < 0) return BSTR_ERR;
 	if (pos > b->slen - find->slen) return BSTR_OK;
 
 	/* Alias with find string */
@@ -1639,12 +1639,12 @@ bstring auxr = (bstring) repl;
 
 	while ((pos = instr (b, pos, auxf)) >= 0) {
 		if (slen >= mlen - 1) {
-			int sl, *t;
-
+			int *t;
+			int vl;
 			mlen += mlen;
-			sl = sizeof (int *) * mlen;
+			vl = sizeof (int *) * mlen;
 			if (static_d == d) d = NULL; /* static_d cannot be realloced */
-			if (mlen <= 0 || sl < mlen || NULL == (t = (int *) bstr__realloc (d, sl))) {
+			if (mlen <= 0 || vl < mlen || NULL == (t = (int *) bstr__realloc (d, vl))) {
 				ret = BSTR_ERR;
 				goto done;
 			}
@@ -1683,8 +1683,7 @@ bstring auxr = (bstring) repl;
 	}
 
 	done:;
-	if (static_d == d) d = NULL;
-	bstr__free (d);
+	if (static_d != d) bstr__free (d);
 	if (auxf != find) bdestroy (auxf);
 	if (auxr != repl) bdestroy (auxr);
 	return ret;
@@ -1700,8 +1699,8 @@ int bfindreplace (bstring b, const_bstring find, const_bstring repl, int pos) {
 	return findreplaceengine (b, find, repl, pos, binstr);
 }
 
-/*  int bfindreplacecaseless (bstring b, const_bstring find, const_bstring repl,
- *                    int pos)
+/*  int bfindreplacecaseless (bstring b, const_bstring find,
+ *                            const_bstring repl, int pos)
  *
  *  Replace all occurrences of a find string, ignoring case, with a replace
  *  string after a given point in a bstring.

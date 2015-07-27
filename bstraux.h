@@ -1,7 +1,7 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2008, and is covered by the BSD open source 
- * license and the GPL. Refer to the accompanying documentation for details 
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
+ * license and the GPL. Refer to the accompanying documentation for details
  * on usage and license.
  */
 
@@ -9,7 +9,7 @@
  * bstraux.h
  *
  * This file is not a necessary part of the core bstring library itself, but
- * is just an auxilliary module which includes miscellaneous or trivial 
+ * is just an auxilliary module which includes miscellaneous or trivial
  * functions.
  */
 
@@ -24,7 +24,7 @@ extern "C" {
 #endif
 
 /* Safety mechanisms */
-#define bstrDeclare(b)               bstring (b) = NULL; 
+#define bstrDeclare(b)               bstring (b) = NULL;
 #define bstrFree(b)                  {if ((b) != NULL && (b)->slen >= 0 && (b)->mlen >= (b)->slen) { bdestroy (b); (b) = NULL; }}
 
 /* Backward compatibilty with previous versions of Bstrlib */
@@ -87,22 +87,22 @@ int bwsBuffLength (struct bwriteStream * stream, int sz);
 void * bwsClose (struct bwriteStream * stream);
 
 /* Security functions */
-#define bSecureDestroy(b) {	                                            \
-bstring bstr__tmp = (b);	                                            \
-	if (bstr__tmp && bstr__tmp->mlen > 0 && bstr__tmp->data) {          \
-	    (void) memset (bstr__tmp->data, 0, (size_t) bstr__tmp->mlen);   \
-	    bdestroy (bstr__tmp);                                           \
-	}                                                                   \
+#define bSecureDestroy(b) {                                             \
+bstring bstr__tmp = (b);                                                \
+    if (bstr__tmp && bstr__tmp->mlen > 0 && bstr__tmp->data) {          \
+        (void) memset (bstr__tmp->data, 0, (size_t) bstr__tmp->mlen);   \
+        bdestroy (bstr__tmp);                                           \
+    }                                                                   \
 }
-#define bSecureWriteProtect(t) {	                                              \
-	if ((t).mlen >= 0) {                                                          \
-	    if ((t).mlen > (t).slen)) {                                               \
-	        (void) memset ((t).data + (t).slen, 0, (size_t) (t).mlen - (t).slen); \
-	    }                                                                         \
-	    (t).mlen = -1;                                                            \
-	}                                                                             \
+#define bSecureWriteProtect(t) {                                                  \
+    if ((t).mlen >= 0) {                                                          \
+        if ((t).mlen > (t).slen)) {                                               \
+            (void) memset ((t).data + (t).slen, 0, (size_t) (t).mlen - (t).slen); \
+        }                                                                         \
+        (t).mlen = -1;                                                            \
+    }                                                                             \
 }
-extern bstring bSecureInput (int maxlen, int termchar, 
+extern bstring bSecureInput (int maxlen, int termchar,
                              bNgetc vgetchar, void * vgcCtx);
 
 #ifdef __cplusplus
