@@ -1,5 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
-
 /*
  * This source file is part of the bstring string library.  This code was
  * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
@@ -14,6 +12,10 @@
  * is just an auxilliary module which includes miscellaneous or trivial
  * functions.
  */
+
+#if defined (_MSC_VER)
+# define _CRT_SECURE_NO_WARNINGS
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>

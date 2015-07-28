@@ -20,7 +20,7 @@
 
 /*  int buIsUTF8Content (const_bstring bu)
  *
- *  Scan string and return 1 if its entire contents is entirely UTF8 code 
+ *  Scan string and return 1 if its entire contents is entirely UTF8 code
  *  points.  Otherwise return 0.
  */
 int buIsUTF8Content (const_bstring bu) {
@@ -28,7 +28,7 @@ struct utf8Iterator iter;
 
 	if (NULL == bdata (bu)) return 0;
 	for (utf8IteratorInit (&iter, bu->data, bu->slen);
-		 !utf8IteratorNoMore (&iter);) {
+	     iter.next < iter.slen;) {
 		if (0 >= utf8IteratorGetNextCodePoint (&iter, -1)) return 0;
 	}
 	return 1;
@@ -37,10 +37,11 @@ struct utf8Iterator iter;
 /*  int buGetBlkUTF16 (cpUcs2* ucs2, int len, cpUcs4 errCh, const_bstring bu,
  *                     int pos)
  *
- *  Convert a string of UTF8 codepoints (bu) into a sequence of UTF16 encoded
- *  code points.  Returns the number of UCS2 16-bit words written to the 
- *  output.  No more than len words are written to the target array ucs2.  If
- *  any code point in bu is unparsable, it will be translated to errCh.
+ *  Convert a string of UTF8 codepoints (bu) skipping the first pos, into a
+ *  sequence of UTF16 encoded code points.  Returns the number of UCS2 16-bit
+ *  words written to the output.  No more than len words are written to the
+ *  target array ucs2.  If any code point in bu is unparsable, it will be
+ *  translated to errCh.
  */
 int buGetBlkUTF16 (/* @out */ cpUcs2* ucs2, int len, cpUcs4 errCh, const_bstring bu, int pos) {
 struct tagbstring t;
@@ -65,7 +66,8 @@ int i, j;
 	utf8IteratorInit (&iter, t.data, t.slen);
 
 	ucs4 = BSTR_ERR;
-	for (i=0; 0 < len && !utf8IteratorNoMore (&iter) && 0 <= (ucs4 = utf8IteratorGetNextCodePoint (&iter, errCh)); i++) {
+	for (i=0; 0 < len && iter.next < iter.slen &&
+	          0 <= (ucs4 = utf8IteratorGetNextCodePoint (&iter, errCh)); i++) {
 		if (ucs4 < 0x10000) {
 			*ucs2++ = (cpUcs2) ucs4;
 			len--;
@@ -97,13 +99,13 @@ int i, j;
 
 Unicode                   UTF-8
 -------                   -----
-U-00000000 - U-0000007F:  0xxxxxxx  
-U-00000080 - U-000007FF:  110xxxxx 10xxxxxx  
-U-00000800 - U-0000FFFF:  1110xxxx 10xxxxxx 10xxxxxx  
+U-00000000 - U-0000007F:  0xxxxxxx
+U-00000080 - U-000007FF:  110xxxxx 10xxxxxx
+U-00000800 - U-0000FFFF:  1110xxxx 10xxxxxx 10xxxxxx
 U-00010000 - U-001FFFFF:  11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
 
-U-00200000 - U-03FFFFFF:  111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx  
-U-04000000 - U-7FFFFFFF:  1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 
+U-00200000 - U-03FFFFFF:  111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+U-04000000 - U-7FFFFFFF:  1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
 
 UTF-32: U-000000 - U-10FFFF
 
@@ -154,7 +156,7 @@ int i, oldSlen;
 				b->slen = oldSlen;
 				return BSTR_ERR;
 			}
-		} else 
+		} else
 #if 0
 			if (v < 0x200000)
 #endif
@@ -167,8 +169,8 @@ int i, oldSlen;
 				b->slen = oldSlen;
 				return BSTR_ERR;
 			}
-		} 
-#if 0		
+		}
+#if 0
 		else if (v < 0x4000000) {
 			c[0] = (unsigned char) ( (v >> 24)         + 0xf8);
 			c[1] = (unsigned char) (((v >> 18) & 0x3f) + 0x80);
@@ -199,15 +201,15 @@ int i, oldSlen;
 #define endSwap(cs,mode) ((mode) ? ((((cs) & 0xFF) << 8) | (((cs) >> 8) & 0xFF)) : (cs))
 #define TEMP_UCS4_BUFFER_SIZE (64)
 
-/*  int buAppendBlkUTF16 (bstring bu, const cpUcs2* utf16, int len, 
+/*  int buAppendBlkUTF16 (bstring bu, const cpUcs2* utf16, int len,
  *                        cpUcs2* bom, cpUcs4 errCh)
  *
- *  Append an array of UCS4 code points (utf16) to UTF8 codepoints (bu).  Any
+ *  Append an array of UCS2 code points (utf16) to UTF8 codepoints (bu).  Any
  *  invalid code point is replaced by errCh.  If errCh is itself not a
  *  valid code point, then this translation will halt upon the first error
  *  and return BSTR_ERR.  Otherwise BSTR_OK is returned.  If a byte order mark
  *  has been previously read, it may be passed in as bom, otherwise if *bom is
- *  set to 0, it will be filled in with the BOM as read from the first 
+ *  set to 0, it will be filled in with the BOM as read from the first
  *  character if it is a BOM.
  */
 int buAppendBlkUTF16 (bstring bu, const cpUcs2* utf16, int len, cpUcs2* bom, cpUcs4 errCh) {
@@ -241,7 +243,9 @@ int cc, i, sm, oldSlen;
 
 	cc = 0;
 	for (;i < len; i++) {
-		cpUcs4 c, v = endSwap (utf16[i], sm);
+		cpUcs4 c, v;
+		v = endSwap (utf16[i], sm);
+
 		if ((v | 0x7FF) == 0xDFFF) { /* Deal with surrogate pairs */
 			if (v >= 0xDC00 || i >= len) {
 				ErrMode:;

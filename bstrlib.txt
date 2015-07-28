@@ -479,7 +479,6 @@ Other problems not addressed:
    implement such things at this low a level is that it is typically more
    efficient to use locks in higher level primitives. There is also no
    platform independent way to implement locks or mutexes.
-4. Unicode/widecharacter support.
 
 Note that except for spotty support of wide characters, the default C
 standard library does not address any of these problems either.
@@ -1998,6 +1997,13 @@ Unicode functions
     appending and extracting code points to and from bstrings, and parsing
     UTF8 and UTF16 from raw data.
 
+    The types cpUcs4 and cpUcs2 respectively are defined as 4 byte and 2 byte
+    encoding formats corresponding to UCS4 and UCS2 respectively.  To test
+    if a raw code point is valid, the macro isLegalUnicodeCodePoint() has
+    been defined.  The utf8 iterator is defined by struct utf8Iterator.  To
+    test if the iterator has more code points to walk through the macro
+    utf8IteratorNoMore() has been defined.
+
     To use these functions compile and link utf8util.c and buniutil.c
 
     ..........................................................................
@@ -2014,7 +2020,8 @@ Unicode functions
 
     extern void utf8IteratorUninit (struct utf8Iterator* iter);
 
-    Invalidate utf8 iterator.
+    Invalidate utf8 iterator.  After calling this the iterator iter, should
+    yield false when passed to the utf8IteratorNoMore() macro.
 
     ..........................................................................
 
@@ -2049,7 +2056,7 @@ Unicode functions
 
     extern int buIsUTF8Content (const_bstring bu);
 
-    Scan a bstring and determine if it is made entirely of unicode code 
+    Scan a bstring and determine if it is made entirely of unicode code
     valid points.  If it is, 1 is returned, otherwise 0 is returned.
 
     ..........................................................................
@@ -2067,7 +2074,7 @@ Unicode functions
     extern int buGetBlkUTF16 (cpUcs2* ucs2, int len, cpUcs4 errCh,
                               const_bstring bu, int pos);
 
-    Convert a string of UTF8 codepoints (bu), skipping the first pos, into a 
+    Convert a string of UTF8 codepoints (bu), skipping the first pos, into a
     sequence of UTF16 encoded code points.  Returns the number of UCS2 16-bit
     words written to the output.  No more than len words are written to the
     target array ucs2.  If any code point in bu is unparsable, it will be

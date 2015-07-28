@@ -1,7 +1,7 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2006, and is covered by the BSD open source 
- * license. Refer to the accompanying documentation for details on usage and 
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
+ * license. Refer to the accompanying documentation for details on usage and
  * license.
  */
 
@@ -26,7 +26,7 @@ size_t i;
 		if (0 > bcatblk (b, buf, elsize)) break;
 		buf = (const void *) (elsize + (const char *) buf);
 	}
-	return (int) i;	
+	return (int) i;
 }
 
 int test0 (void) {

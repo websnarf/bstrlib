@@ -1,6 +1,6 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2008, and is covered by the BSD open source
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
  * license and the GPL. Refer to the accompanying documentation for details
  * on usage and license.
  */
@@ -1640,11 +1640,11 @@ bstring auxr = (bstring) repl;
 	while ((pos = instr (b, pos, auxf)) >= 0) {
 		if (slen >= mlen - 1) {
 			int *t;
-			int vl;
+			int sl;
 			mlen += mlen;
-			vl = sizeof (int *) * mlen;
+			sl = sizeof (int *) * mlen;
 			if (static_d == d) d = NULL; /* static_d cannot be realloced */
-			if (mlen <= 0 || vl < mlen || NULL == (t = (int *) bstr__realloc (d, vl))) {
+			if (mlen <= 0 || sl < mlen || NULL == (t = (int *) bstr__realloc (d, sl))) {
 				ret = BSTR_ERR;
 				goto done;
 			}
