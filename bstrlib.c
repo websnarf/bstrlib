@@ -2949,6 +2949,7 @@ int n, r, l;
 	if (BSTR_OK != balloc (b, n + 2)) return BSTR_ERR;
 
 	exvsnprintf (r, (char *) b->data + b->slen, count + 2, fmt, arg);
+	b->data[b->slen + count + 2] = '\0';
 
 	/* Did the operation complete successfully within bounds? */
 
