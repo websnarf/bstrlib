@@ -104,6 +104,7 @@ int ret = 0;
 
 #define EMPTY_STRING ""
 #define SHORT_STRING "bogus"
+#define EIGHT_CHAR_STRING "Waterloo"
 #define LONG_STRING  "This is a bogus but reasonably long string.  Just long enough to cause some mallocing."
 
 static int test0 (void) {
@@ -3363,7 +3364,7 @@ int ret;
 }
 
 static int test46 (void) {
-bstring b;
+bstring b, b2;
 int ret = 0;
 
 	printf ("TEST: int bvcformata (bstring b, int count, const char * fmt, va_list arg);\n");
@@ -3394,6 +3395,16 @@ int ret = 0;
 
 	b->slen = 0;
 	ret += test46_1 (b, "%s", &longBstring, (char *) longBstring.data);
+
+	b->slen = 0;
+	b2 = bfromcstr (EIGHT_CHAR_STRING);
+	bconcat (b2, b2);
+	bconcat (b2, b2);
+	bconcat (b2, b2);
+	ret += test46_1 (b, "%s%s%s%s%s%s%s%s", b2,
+	                 EIGHT_CHAR_STRING, EIGHT_CHAR_STRING, EIGHT_CHAR_STRING, EIGHT_CHAR_STRING,
+	                 EIGHT_CHAR_STRING, EIGHT_CHAR_STRING, EIGHT_CHAR_STRING, EIGHT_CHAR_STRING);
+	bdestroy (b2);
 
 	bdestroy (b);
 	printf ("\t# failures: %d\n", ret);

@@ -146,6 +146,12 @@ int balloc (bstring b, int olen) {
 		b->data = x;
 		b->mlen = len;
 		b->data[b->slen] = (unsigned char) '\0';
+
+#if defined (BSTRLIB_TEST_CANARY)
+		if (len > b->slen + 1) {
+			memchr (b->data + b->slen + 1, 'X', len - (b->slen + 1));
+		}
+#endif
 	}
 
 	return BSTR_OK;
