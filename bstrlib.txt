@@ -574,23 +574,29 @@ bstrwrap.cpp.
 Files
 -----
 
+Core C files (required for C and C++):
 bstrlib.c       - C implementaion of bstring functions.
 bstrlib.h       - C header file for bstring functions.
-bstraux.c       - C example that implements trivial additional functions.
-bstraux.h       - C header for bstraux.c
-bstest.c        - C unit/regression test for bstrlib.c
 
+Core C++ files (required for C++):
 bstrwrap.cpp    - C++ implementation of CBString.
 bstrwrap.h      - C++ header file for CBString.
-test.cpp        - C++ unit/regression test for bstrwrap.cpp
 
-bsafe.c         - C runtime stubs to abort usage of unsafe C functions.
-bsafe.h         - C header file for bsafe.c functions.
-
+Base Unicode support:
 utf8util.c      - C implemention of generic utf8 parsing functions.
 utf8util.h      - C head file for generic utf8 parsing functions.
 buniutil.c      - C implemention utf8 bstring packing and unpacking functions.
 buniutil.c      - C header file for utf8 bstring functions.
+
+Extra utility functions:
+bstraux.c       - C example that implements trivial additional functions.
+bstraux.h       - C header for bstraux.c
+
+Miscellaneous:
+bstest.c        - C unit/regression test for bstrlib.c
+test.cpp        - C++ unit/regression test for bstrwrap.cpp
+bsafe.c         - C runtime stubs to abort usage of unsafe C functions.
+bsafe.h         - C header file for bsafe.c functions.
 
 C modules need only include bstrlib.h and compile/link bstrlib.c to use the
 basic bstring library.  C++ projects need to additionally include bstrwrap.h
@@ -632,7 +638,9 @@ The functions
 
     Create a bstring which contains the contents of the '\0' terminated
     char * buffer str.  The memory buffer backing the bstring is at least
-    mlen characters in length.  If an error occurs NULL is returned.
+    mlen characters in length.  The buffer is also at least size required
+    to hold the string with the '\0' terminator.  If an error occurs NULL
+    is returned.
 
     So for example:
 
@@ -643,6 +651,27 @@ The functions
     least 64 characters long otherwise do nothing.  And we know this is well
     defined so long as b was successfully created, since it will have been
     allocated with at least 64 characters.
+
+    ..........................................................................
+
+    extern bstring bfromcstrrangealloc (int minl, int maxl, const char* str);
+
+    Create a bstring which contains the contents of the '\0' terminated
+    char * buffer str.  The memory buffer backing the string is at least
+    minl characters in length, but an attempt is made to allocate up to
+    maxl characters.  The buffer is also at least size required to hold
+    the string with the '\0' terminator.  If an error occurs NULL is
+    returned.
+
+    So for example:
+
+    bstring b = bfromcstrrangealloc (0, 128, "Hello.");
+    if (b) b->data[5] = '!';
+
+    The idea is that this will set the 6th character of b to '!' if it was
+    allocated otherwise do nothing.  And we know this is well defined so
+    long as b was successfully created, since it will have been allocated
+    with at least 7 (strlen("Hello.")) characters.
 
     ..........................................................................
 
@@ -1919,6 +1948,40 @@ The macros
     to write to this struct tagbstring in a write protected state from any
     bstrlib function will lead to BSTR_ERR being returned.  Invoking the
     bwriteallow macro on this struct tagbstring will have no effect.
+
+    ..........................................................................
+
+    bstring bfromStatic("...");
+
+    Allocate a bstring with the contents of a string literal.  Returns
+    NULL if an error has occurred (ran out of memory).  The string literal
+    parameter is enforced as literal at compile time.
+
+    ..........................................................................
+
+    int bcatStatic (bstring b, "...");
+
+    Append a string literal to bstring b.  Returns 0 if successful, or
+    BSTR_ERR if some error has occurred.  The string literal parameter is
+    enforced as literal at compile time.
+
+    ..........................................................................
+
+    int bassignStatic (bstring b, " ... ");
+
+    Assign the contents of a string literal to the bstring b.  The string
+    literal parameter is enforced as literal at compile time.
+
+    ..........................................................................
+
+    int bisstemeqcaselessStatic (bstring b, " ... ");
+
+    Compare beginning of bstring b with a string literal without
+    differentiating between case for equality.  If the beginning of b differs
+    from the memory block other than in case (or if b0 is too short), 0 is
+    returned, if the bstrings are the same, 1 is returned, if there is an
+    error, -1 is returned.  The string literal parameter is enforced as
+    literal at compile time.
 
     ..........................................................................
 
@@ -3255,6 +3318,23 @@ essence, would allow the compiler to enforce trust propogation at compile
 time rather than run time.  Non-resizability is also interesting, however,
 it seems marginal (i.e., to want a string that cannot be resized, yet can be
 modified and yet where a fixed sized buffer is undesirable.)
+
+Libsrt
+------
+
+This is a length based string library based on a slightly different strategy.
+The string contents are appended to the end of the header directly so strings
+only require a single allocation.  However, whenever a reallocation occurs,
+the header is replicated and the base pointer for the string is changed.
+That means references to the string are only valid so long as they are not
+resized after any such reference is cached.  The internal structure maintains
+a lot some state used to accelerate unicode manipulation.  This makes
+sustainable usage of the library essentially opaque.  This also creates a
+bottleneck for whatever extensions to the library one desires (write all
+extensions on top of the base library, put in a request to the author, or
+dedicate an expert to learn the internals of the library).  The library is
+committed to Unicode representation of its string data, and therefore cannot
+be used as a generic buffer library.
 
 ===============================================================================
 

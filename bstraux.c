@@ -950,25 +950,26 @@ bstring b, t;
 	if ((c = UCHAR_MAX + 1) == termchar) c++;
 
 	for (i=0; ; i++) {
-		if (termchar == c || (maxlen > 0 && i >= maxlen)) c = EOF;
-		else c = vgetchar (vgcCtx);
-
+		if (termchar == c || (maxlen > 0 && i >= maxlen)) break;
+		c = vgetchar (vgcCtx);
 		if (EOF == c) break;
 
 		if (i+1 >= b->mlen) {
 
-			/* Double size, but deal with unusual case of numeric
-			   overflows */
+			/* Double size, and deal with numeric overflows */
 
 			if (b->mlen <= INT_MAX / 2) m = b->mlen << 1;
 			else if (b->mlen <= INT_MAX - 1024) m = b->mlen + 1024;
 			else if (b->mlen <= INT_MAX - 16) m = b->mlen + 16;
 			else if (b->mlen <= INT_MAX - 1) m = b->mlen + 1;
-			else return NULL;
-			t = bfromcstralloc (m, "");
+			else {
+				bSecureDestroy (b); /* Cleanse partial buffer */
+				return NULL;
+			}
 
+			t = bfromcstrrangealloc (b->mlen + 1, m, "");
 			if (t) memcpy (t->data, b->data, i);
-			bSecureDestroy (b); /* Cleanse previous buffer */
+			bSecureDestroy (b);     /* Cleanse previous buffer */
 			b = t;
 			if (!b) return b;
 		}

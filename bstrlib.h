@@ -40,6 +40,7 @@ typedef const struct tagbstring * const_bstring;
 #define cstr2bstr bfromcstr
 extern bstring bfromcstr (const char * str);
 extern bstring bfromcstralloc (int mlen, const char * str);
+extern bstring bfromcstrrangealloc (int minl, int maxl, const char* str);
 extern bstring blk2bstr (const void * blk, int len);
 extern char * bstr2cstr (const_bstring s, char z);
 extern int bcstrfree (char * s);
@@ -211,6 +212,11 @@ struct tagbstring {
 
 /* Static constant block parameter pair */
 #define bsStaticBlkParms(q) ((void *)("" q "")), ((int) sizeof(q)-1)
+
+#define bcatStatic(b,s)     ((bcatblk)((b), bsStaticBlkParms(s)))
+#define bfromStatic(s)      ((blk2bstr)(bsStaticBlkParms(s)))
+#define bassignStatic(b,s)  ((bassignblk)((b), bsStaticBlkParms(s)))
+#define bisstemeqcaselessStatic(b,s) ((bisstemeqcaselessblk)((b), bsStaticBlkParms(s)))
 
 /* Reference building macros */
 #define cstr2tbstr btfromcstr

@@ -28,13 +28,14 @@ extern "C" {
 #define bstrFree(b)                  {if ((b) != NULL && (b)->slen >= 0 && (b)->mlen >= (b)->slen) { bdestroy (b); (b) = NULL; }}
 
 /* Backward compatibilty with previous versions of Bstrlib */
+#if !defined(BSTRLIB_REDUCE_NAMESPACE_POLLUTION)
 #define bAssign(a,b)                 ((bassign)((a), (b)))
 #define bSubs(b,pos,len,a,c)         ((breplace)((b),(pos),(len),(a),(unsigned char)(c)))
 #define bStrchr(b,c)                 ((bstrchr)((b), (c)))
 #define bStrchrFast(b,c)             ((bstrchr)((b), (c)))
 #define bCatCstr(b,s)                ((bcatcstr)((b), (s)))
 #define bCatBlk(b,s,len)             ((bcatblk)((b),(s),(len)))
-#define bCatStatic(b,s)              bCatBlk ((b), ("" s ""), sizeof (s) - 1)
+#define bCatStatic(b,s)              bcatStatic(b,s)
 #define bTrunc(b,n)                  ((btrunc)((b), (n)))
 #define bReplaceAll(b,find,repl,pos) ((bfindreplace)((b),(find),(repl),(pos)))
 #define bUppercase(b)                ((btoupper)(b))
@@ -43,6 +44,7 @@ extern "C" {
 #define bCaselessNCmp(a,b,n)         ((bstrnicmp)((a), (b), (n)))
 #define bBase64Decode(b)             (bBase64DecodeEx ((b), NULL))
 #define bUuDecode(b)                 (bUuDecodeEx ((b), NULL))
+#endif
 
 /* Unusual functions */
 extern struct bStream * bsFromBstr (const_bstring b);

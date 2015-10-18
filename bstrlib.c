@@ -211,34 +211,53 @@ size_t j;
 	return b;
 }
 
-/*  bstring bfromcstralloc (int mlen, const char * str)
+/*  bstring bfromcstrrangealloc (int minl, int maxl, const char* str)
  *
- *  Create a bstring which contains the contents of the '\0' terminated char *
- *  buffer str.  The memory buffer backing the string is at least len
- *  characters in length.
+ *  Create a bstring which contains the contents of the '\0' terminated
+ *  char* buffer str.  The memory buffer backing the string is at least
+ *  minl characters in length, but an attempt is made to allocate up to
+ *  maxl characters.
  */
-bstring bfromcstralloc (int mlen, const char * str) {
+bstring bfromcstrrangealloc (int minl, int maxl, const char* str) {
 bstring b;
 int i;
 size_t j;
 
+	/* Bad parameters? */
 	if (str == NULL) return NULL;
+	if (maxl < minl || minl < 0) return NULL;
+
+	/* Adjust lengths */
 	j = (strlen) (str);
-	i = snapUpSize ((int) (j + (2 - (j != 0))));
-	if (i <= (int) j) return NULL;
+	if ((size_t) minl < (j+1)) minl = (int) (j+1);
+	if (maxl < minl) maxl = minl;
+	i = maxl;
 
 	b = (bstring) bstr__alloc (sizeof (struct tagbstring));
 	if (b == NULL) return NULL;
 	b->slen = (int) j;
-	if (i < mlen) i = mlen;
 
-	if (NULL == (b->data = (unsigned char *) bstr__alloc (b->mlen = i))) {
-		bstr__free (b);
-		return NULL;
+	while (NULL == (b->data = (unsigned char *) bstr__alloc (b->mlen = i))) {
+		int k = (i >> 1) + (minl >> 1);
+		if (i == k || i < minl) {
+			bstr__free (b);
+			return NULL;
+		}
+		i = k;
 	}
 
 	bstr__memcpy (b->data, str, j+1);
 	return b;
+}
+
+/*  bstring bfromcstralloc (int mlen, const char * str)
+ *
+ *  Create a bstring which contains the contents of the '\0' terminated
+ *  char* buffer str.  The memory buffer backing the string is at least
+ *  mlen characters in length.
+ */
+bstring bfromcstralloc (int mlen, const char * str) {
+	return bfromcstrrangealloc (mlen, mlen, str);
 }
 
 /*  bstring blk2bstr (const void * blk, int len)
@@ -1566,8 +1585,8 @@ bstring auxr = (bstring) repl;
 
 	if (b == NULL || b->data == NULL || find == NULL ||
 		find->data == NULL || repl == NULL || repl->data == NULL ||
-		pos < 0 || find->slen <= 0 || b->mlen < 0 || b->slen > b->mlen ||
-		b->mlen <= 0 || b->slen < 0 || repl->slen < 0) return BSTR_ERR;
+		pos < 0 || find->slen <= 0 || b->mlen <= 0 || b->slen > b->mlen ||
+		b->slen < 0 || repl->slen < 0) return BSTR_ERR;
 	if (pos > b->slen - find->slen) return BSTR_OK;
 
 	/* Alias with find string */

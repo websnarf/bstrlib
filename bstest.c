@@ -63,6 +63,36 @@ static char * dumpBstring (const struct tagbstring * b) {
 	return (char *) dumpOut[rot]->data;
 }
 
+static char* dumpCstring (const char* s) {
+	rot = (rot + 1) % (unsigned)16;
+	if (dumpOut[rot] == NULL) {
+		dumpOut[rot] = bfromcstr ("");
+		if (dumpOut[rot] == NULL) return "FATAL INTERNAL ERROR";
+	}
+	dumpOut[rot]->slen = 0;
+	if (s == NULL) {
+		bcatcstr (dumpOut[rot], "NULL");
+	} else {
+		static char msg[64];
+		int i;
+
+		sprintf (msg, "cstr[%p] -> ", (void *)s);
+		bcatcstr (dumpOut[rot], msg);
+
+		bcatStatic (dumpOut[rot], "\"");
+		for (i = 0; s[i]; i++) {
+			if (i > 1024) {
+				bcatStatic (dumpOut[rot], " ...");
+				break;
+			}
+			bconchar (dumpOut[rot], s[i]);
+		}
+		bcatStatic (dumpOut[rot], "\"");
+	}
+
+	return (char *) dumpOut[rot]->data;
+}
+
 static int test0_0 (const char * s, const char * res) {
 bstring b0 = bfromcstr (s);
 int ret = 0;
@@ -107,6 +137,51 @@ int ret = 0;
 #define EIGHT_CHAR_STRING "Waterloo"
 #define LONG_STRING  "This is a bogus but reasonably long string.  Just long enough to cause some mallocing."
 
+static int test0_2 (char* s) {
+int l = s?strlen(s):2;
+int i, j, k;
+int ret = 0;
+
+	for (i = 0; i < l*2; i++) {
+		for (j = 0; j < l*2; j++) {
+			for (k = 0; k <= l; k++) {
+				char* t = s ? (s + k) : NULL;
+				bstring b = bfromcstrrangealloc (i, j, t);
+				if (NULL == b) {
+					if (i < j && t != NULL) {
+						printf ("[%d] i = %d, j = %d, l = %d, k = %d\n", __LINE__, i, j, l, k);
+					}
+					ret += (i < j && t != NULL);
+					continue;
+				}
+				if (NULL == t) {
+					printf ("[%d] i = %d, j = %d, l = %d, k = %d\n", __LINE__, i, j, l, k);
+					ret++;
+					bdestroy (b);
+					continue;
+				}
+				if (b->data == NULL) {
+					printf ("[%d] i = %d, j = %d, l = %d, k = %d\n", __LINE__, i, j, l, k);
+					ret++;
+					continue;
+				}
+				if (b->slen != l-k || b->data[l-k] != '\0' || b->mlen <= b->slen) {
+					printf ("[%d] i = %d, j = %d, l = %d, k = %d, b->slen = %d\n", __LINE__, i, j, l, k, b->slen);
+					ret++;
+				} else if (0 != memcmp (t, b->data, l-k+1)) {
+					printf ("[%d] \"%s\" != \"%s\"\n", b->data, t);
+					ret++;
+				}
+				bdestroy (b);
+				continue;
+			}
+		}
+	}
+
+	printf (".\tbfromcstrrangealloc (*,*,%s) correct\n", dumpCstring(s));
+	return ret;
+}
+
 static int test0 (void) {
 int ret = 0;
 
@@ -134,6 +209,13 @@ int ret = 0;
 	ret += test0_1 (SHORT_STRING, 30, SHORT_STRING);
 	ret += test0_1 ( LONG_STRING,  0,  LONG_STRING);
 	ret += test0_1 ( LONG_STRING, 30,  LONG_STRING);
+
+	printf ("TEST: bstring bfromcstrrangealloc (int minl, int maxl, const char * str);\n");
+
+	ret += test0_2 (NULL);
+	ret += test0_2 (EMPTY_STRING);
+	ret += test0_2 ( LONG_STRING);
+
 	printf ("\t# failures: %d\n", ret);
 
 	return ret;

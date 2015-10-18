@@ -349,7 +349,7 @@ int c;
 }
 
 int test13 (void) {
-struct tagbstring t0 = bsStatic ("Random String");
+struct tagbstring t0 = bsStatic ("Random String, long enough to cause to reallocing");
 struct vfgetc vctx;
 bstring b;
 int ret = 0;
@@ -368,7 +368,7 @@ int i;
 		h = b->data;
 		bSecureDestroy (b);
 
-		/* WARNING! Technically unsound code follows: */
+		/* WARNING! Technically undefined code follows (h has been freed): */
 		ret += (0 == memcmp (h, t0.data, t0.slen));
 
 		if (ret) break;
