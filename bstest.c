@@ -1664,6 +1664,18 @@ int ret = 0;
 			}
 			if (ret) break;
 		}
+
+		l = bsplit (&emptyBstring, 'x');
+		bdestroy (l->entry[0]);
+		l->qty--;
+		b = bjoin (l, &longBstring);
+		bstrListDestroy (l);
+		if (b->slen) {
+			printf ("\t\tfailure(%d) ", __LINE__);
+			ret++;
+		}
+		bdestroy (b);
+
 	}
 
 	printf ("\t# failures: %d\n", ret);

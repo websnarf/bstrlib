@@ -2276,6 +2276,7 @@ int i, c, v;
 
 	if (bl == NULL || bl->qty < 0) return NULL;
 	if (sep != NULL && (sep->slen < 0 || sep->data == NULL)) return NULL;
+	if (bl->qty < 1) return bfromStatic ("");
 
 	for (i = 0, c = 1; i < bl->qty; i++) {
 		v = bl->entry[i]->slen;
