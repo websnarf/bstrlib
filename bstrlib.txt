@@ -486,9 +486,33 @@ standard library does not address any of these problems either.
 Configurable compilation options
 --------------------------------
 
-All configuration options are meant solely for the purpose of compiler
-compatibility.  Configuration options are not meant to change the semantics
-or capabilities of the library, except where it is unavoidable.
+The Better String Library is not an application, it is a library.  To compile
+it, you need to compile bstrlib.c to an object file that is linked to your
+application.  A Makefile might contain entries such as the following to
+accomplish this:
+
+BSTRDIR = $(CDIR)/bstrlib
+INCLUDES = -I$(BSTRDIR)
+BSTROBJS = $(ODIR)/bstrlib.o
+DEFINES =
+CFLAGS = -O3 -Wall -pedantic -ansi -s $(DEFINES)
+
+application: $(ODIR)/main.o $(BSTROBJS)
+	echo Linking: $@
+	$(CC) $< $(BSTROBJS) -o $@
+
+$(ODIR)/%.o : $(BSTRDIR)/%.c
+	echo Compiling: $<
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+$(ODIR)/%.o : %.c
+	echo Compiling: $<
+	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+You can configure bstrlib using with the standard macro defines passed to
+the compiler.  All configuration options are meant solely for the purpose of
+compiler compatibility.  Configuration options are not meant to change the
+semantics or capabilities of the library, except where it is unavoidable.
 
 Since some C++ compilers don't include the Standard Template Library and some
 have the options of disabling exception handling, a number of macros can be
