@@ -22,6 +22,15 @@
 static bstring dumpOut[16];
 static int rot = 0;
 
+static int incorrectBstring (const struct tagbstring * b) {
+	if (NULL == b) return 1;
+	if (NULL == b->data) return 1;
+	if (b->slen < 0) return 1;
+	if (b->mlen > 0 && b->slen > b->mlen) return 1;
+	if (b->data[b->slen] != '\0') return 1;
+	return 0;
+}
+
 static char * dumpBstring (const struct tagbstring * b) {
 	rot = (rot + 1) % (unsigned)16;
 	if (dumpOut[rot] == NULL) {
@@ -619,6 +628,52 @@ int ret = 0;
 #define test7() test7x8 ("biseq", biseq, -1, 0, 0, 1)
 #define test8() test7x8 ("bstrcmp", bstrcmp, SHRT_MIN, -1, 1, 0)
 
+static int test47_0 (const struct tagbstring* b, const unsigned char* blk, int len, int res) {
+int rv, ret = 0;
+
+	ret += (res != (rv = biseqblk (b, blk, len)));
+	printf (".\tbiseqblk (%s, %s) = %d\n", dumpBstring (b), dumpCstring (blk), rv);
+	if (ret) {
+		printf ("\t\tfailure(%d) = %d (res = %d)\n", __LINE__, ret, res);
+	}
+	return ret;
+}
+
+static int test47 (void) {
+int ret = 0;
+
+	printf ("TEST: int biseqblk (const_bstring b, const void * blk, int len);\n");
+
+	/* tests with NULL */
+	ret += test47_0 (NULL, NULL, 0, -1);
+	ret += test47_0 (&emptyBstring, NULL, 0, -1);
+	ret += test47_0 (NULL, emptyBstring.data, 0, -1);
+	ret += test47_0 (&shortBstring, NULL, shortBstring.slen, -1);
+	ret += test47_0 (NULL, shortBstring.data, 0, -1);
+	ret += test47_0 (&badBstring1, badBstring1.data, badBstring1.slen, -1);
+	ret += test47_0 (&badBstring2, badBstring2.data, badBstring2.slen, -1);
+	ret += test47_0 (&shortBstring, badBstring2.data, badBstring2.slen, -1);
+	ret += test47_0 (&badBstring2, shortBstring.data, shortBstring.slen, -1);
+
+	/* normal operation tests on all sorts of subranges */
+	ret += test47_0 (&emptyBstring, emptyBstring.data, emptyBstring.slen, 1);
+	ret += test47_0 (&shortBstring, emptyBstring.data, emptyBstring.slen, 0);
+	ret += test47_0 (&emptyBstring, shortBstring.data, shortBstring.slen, 0);
+	ret += test47_0 (&shortBstring, shortBstring.data, shortBstring.slen, 1);
+
+	{
+		bstring b = bstrcpy (&shortBstring);
+		b->data[1]++;
+		ret += test47_0 (b, shortBstring.data, shortBstring.slen, 0);
+		bdestroy (b);
+	}
+	ret += test47_0 (&shortBstring, longBstring.data, longBstring.slen, 0);
+	ret += test47_0 (&longBstring, shortBstring.data, shortBstring.slen, 0);
+
+	printf ("\t# failures: %d\n", ret);
+	return ret;
+}
+
 static int test9_0 (const_bstring b0, const_bstring b1, int n, int res) {
 int rv, ret = 0;
 
@@ -1128,6 +1183,24 @@ int rv, ret = 0;
 	return ret;
 }
 
+static int test16_1 (void) {
+bstring b0 = bfromStatic ("aaaaabbbbb");
+struct tagbstring b1;
+int res, ret = 0;
+
+	bmid2tbstr (b1, b0, 4, 4);
+	b0->slen = 6;
+
+	printf (".\tbinsert (%s, 2, %s, '?') = ", dumpBstring (b0), dumpBstring (&b1));
+	res = binsert (b0, 2, &b1, '?');
+	printf ("%s (Alias test)\n", dumpBstring (b0));
+
+	ret += (res != 0);
+	ret += !biseqStatic(b0, "aaabbbaaab");
+
+	return ret;
+}
+
 static int test16 (void) {
 int ret = 0;
 	printf ("TEST: int binsert (bstring b0, int pos, const_bstring b1, unsigned char fill);\n");
@@ -1154,6 +1227,10 @@ int ret = 0;
 	ret += test16_0 (&shortBstring,  2, &shortBstring, (unsigned char) '?', "bobogusgus");
 	ret += test16_0 (&shortBstring,  6, &shortBstring, (unsigned char) '?', "bogus?bogus");
 	ret += test16_0 (&shortBstring,  6, NULL,          (unsigned char) '?', "bogus");
+
+	/* Alias testing */
+	ret += test16_1 ();
+
 	printf ("\t# failures: %d\n", ret);
 	return ret;
 }
@@ -1537,6 +1614,7 @@ int ret = 0;
 
 		c = bjoin (l, &t);
 		ret += !biseq (c, b);
+		ret += incorrectBstring (c);
 		bdestroy (c);
 		ret += 0 != bstrListDestroy (l);
 	} else {
@@ -1582,6 +1660,7 @@ int ret = 0;
 
 		c = bjoin (l, sc);
 		ret += !biseq (c, b);
+		ret += incorrectBstring (c);
 		bdestroy (c);
 		ret += 0 != bstrListDestroy (l);
 	} else {
@@ -1600,6 +1679,7 @@ int ret = 0;
 static int test21 (void) {
 struct tagbstring is = bsStatic ("is");
 struct tagbstring ng = bsStatic ("ng");
+struct tagbstring commas = bsStatic (",,,,");
 int ret = 0;
 
 	printf ("TEST: struct bstrList * bsplit (const_bstring str, unsigned char splitChar);\n");
@@ -1614,6 +1694,7 @@ int ret = 0;
 	ret += test21_0 (&shortBstring, (char) 's', 2);
 	ret += test21_0 (&shortBstring, (char) 'b', 2);
 	ret += test21_0 (&longBstring, (char) 'o', 9);
+	ret += test21_0 (&commas, (char) ',', 5);
 
 	printf ("TEST: struct bstrList * bsplitstr (bstring str, const_bstring splitStr);\n");
 
@@ -1669,6 +1750,7 @@ int ret = 0;
 		bdestroy (l->entry[0]);
 		l->qty--;
 		b = bjoin (l, &longBstring);
+		ret += incorrectBstring (b);
 		bstrListDestroy (l);
 		if (b->slen) {
 			printf ("\t\tfailure(%d) ", __LINE__);
@@ -2951,6 +3033,44 @@ struct tagbstring t2 = bsStatic ("bOgUt");
 	return ret;
 }
 
+static int test48_0 (const_bstring b, const unsigned char * blk, int len, int res) {
+int rv, ret = 0;
+
+	ret += (res != (rv = biseqcaselessblk (b, blk, len)));
+	printf (".\tbiseqcaselessblk (%s, %s, %d) = %d\n", dumpBstring (b), dumpCstring (blk), len, rv);
+	if (ret) {
+		printf ("\t\tfailure(%d) = %d (res = %d)\n", __LINE__, ret, res);
+	}
+	return ret;
+}
+
+static int test48 (void) {
+int ret = 0;
+struct tagbstring t0 = bsStatic ("bOgUs");
+struct tagbstring t1 = bsStatic ("bOgUR");
+struct tagbstring t2 = bsStatic ("bOgUt");
+
+	printf ("TEST: int biseqcaselessblk (const_bstring b, const void * blk, int len);\n");
+
+	/* tests with NULL */
+	ret += test48_0 (NULL, NULL, 0, BSTR_ERR);
+	ret += test48_0 (&emptyBstring, NULL, 0, BSTR_ERR);
+	ret += test48_0 (NULL, emptyBstring.data, 0, BSTR_ERR);
+	ret += test48_0 (&emptyBstring, badBstring1.data, emptyBstring.slen, BSTR_ERR);
+	ret += test48_0 (&badBstring1, emptyBstring.data, badBstring1.slen, BSTR_ERR);
+	ret += test48_0 (&shortBstring, badBstring2.data, badBstring2.slen, BSTR_ERR);
+	ret += test48_0 (&badBstring2, shortBstring.data, badBstring2.slen, BSTR_ERR);
+
+	/* normal operation tests on all sorts of subranges */
+	ret += test48_0 (&emptyBstring, emptyBstring.data, emptyBstring.slen, 1);
+	ret += test48_0 (&shortBstring, t0.data, t0.slen, 1);
+	ret += test48_0 (&shortBstring, t1.data, t1.slen, 0);
+	ret += test48_0 (&shortBstring, t2.data, t2.slen, 0);
+
+	if (ret) printf ("\t# failures: %d\n", ret);
+	return ret;
+}
+
 struct emuFile {
 	int ofs;
 	bstring contents;
@@ -3560,6 +3680,8 @@ int ret = 0;
 	ret += test44 ();
 	ret += test45 ();
 	ret += test46 ();
+	ret += test47 ();
+	ret += test48 ();
 
 	printf ("# test failures: %d\n", ret);
 

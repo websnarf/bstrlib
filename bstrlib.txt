@@ -829,6 +829,17 @@ The functions
 
     ..........................................................................
 
+    extern int biseqcaselessblk (const_bstring b, const void * blk, int len);
+
+    Compare content of b and the array of bytes in blk for length len for
+    equality without differentiating between character case.  If the content
+    differs other than in case, 0 is returned, if, ignoring case, the content
+    is the same, 1 is returned, if there is an error, -1 is returned.  If the
+    length of the strings are different, this function is O(1).  '\0'
+    termination characters are not treated in any special way.
+
+    ..........................................................................
+
     extern int bisstemeqcaselessblk (const_bstring b0, const void * blk, int len);
 
     Compare beginning of bstring b0 with a block of memory of length len
@@ -836,6 +847,16 @@ The functions
     differs from the memory block other than in case (or if b0 is too short),
     0 is returned, if the bstrings are the same, 1 is returned, if there is an
     error, -1 is returned.
+
+    ..........................................................................
+
+    int biseqblk (const_bstring b, const void * blk, int len)
+
+    Compare the string b with the character block blk of length len.  If the
+    content differs, 0 is returned, if the content is the same, 1 is returned,
+    if there is an error, -1 is returned.  If the length of the strings are
+    different, this function is O(1).  '\0' characters are not treated in
+    any special way.
 
     ..........................................................................
 
@@ -1080,6 +1101,16 @@ The functions
     past the end of s1, then the character "fill" is appended as necessary to
     make up the gap between the end of s1 and pos.  The value BSTR_OK is
     returned if the operation is successful, otherwise BSTR_ERR is returned.
+
+    ..........................................................................
+
+    int binsertblk (bstring b, int pos, const void * blk, int len,
+                    unsigned char fill)
+
+    Inserts the block of characters at blk with length len into b at position
+    pos.  If the position pos is past the end of b, then the character "fill"
+    is appended as necessary to make up the gap between the end of b1 and pos.
+    Unlike bsetstr, binsert does not allow b2 to be NULL.
 
     ..........................................................................
 
@@ -1335,6 +1366,15 @@ The functions
     should result in a copy of b, if s->slen is 1.  If there is an error NULL
     is returned, otherwise a bstring with the correct result is returned.
     See bstrListCreate() above for structure of struct bstrList.
+
+    ..........................................................................
+
+    bstring bjoinblk (const struct bstrList * bl, void * blk, int len);
+
+    Join the entries of a bstrList into one bstring by sequentially
+    concatenating them with the content from blk for length len in between.
+    If there is an error NULL is returned, otherwise a bstring with the
+    correct result is returned.
 
     ..........................................................................
 
@@ -1967,6 +2007,15 @@ The macros
 
     ..........................................................................
 
+    int binsertStatic (bstring s1, int pos, " ... ", char fill);
+
+    Inserts the string literal into s1 at position pos.  If the position pos
+    is past the end of s1, then the character "fill" is appended as necessary
+    to make up the gap between the end of s1 and pos.  The value BSTR_OK is
+    returned if the operation is successful, otherwise BSTR_ERR is returned.
+
+    ..........................................................................
+
     int bassignStatic (bstring b, " ... ");
 
     Assign the contents of a string literal to the bstring b.  The string
@@ -1974,14 +2023,53 @@ The macros
 
     ..........................................................................
 
+    int biseqStatic (const_bstring b, " ... ");
+
+    Compare the string b with the string literal.  If the content differs, 0
+    is returned, if the content is the same, 1 is returned, if there is an
+    error, -1 is returned.  If the length of the strings are different, this
+    function is O(1).  '\0' characters are not treated in any special way.
+
+    ..........................................................................
+
+    int biseqcaselessStatic (const_bstring b, " ... ");
+
+    Compare content of b and the string literal for equality without
+    differentiating between character case.  If the content differs other
+    than in case, 0 is returned, if, ignoring case, the content is the same,
+    1 is returned, if there is an error, -1 is returned.  If the length of
+    the strings are different, this function is O(1).  '\0' characters are
+    not treated in any special way.
+
+    ..........................................................................
+
+    int bisstemeqStatic (bstring b, " ... ");
+
+    Compare beginning of bstring b with a string literal for equality.  If
+    the beginning of b differs from the memory block (or if b is too short),
+    0 is returned, if the bstrings are the same, 1 is returned, if there is
+    an error, -1 is returned.  The string literal parameter is enforced as
+    literal at compile time.
+
+    ..........................................................................
+
     int bisstemeqcaselessStatic (bstring b, " ... ");
 
     Compare beginning of bstring b with a string literal without
     differentiating between case for equality.  If the beginning of b differs
-    from the memory block other than in case (or if b0 is too short), 0 is
+    from the memory block other than in case (or if b is too short), 0 is
     returned, if the bstrings are the same, 1 is returned, if there is an
     error, -1 is returned.  The string literal parameter is enforced as
     literal at compile time.
+
+    ..........................................................................
+
+    bstring bjoinStatic (const struct bstrList * bl, " ... ");
+
+    Join the entries of a bstrList into one bstring by sequentially
+    concatenating them with the string literal in between.  If there is an
+    error NULL is returned, otherwise a bstring with the correct result is
+    returned.  See bstrListCreate() above for structure of struct bstrList.
 
     ..........................................................................
 
