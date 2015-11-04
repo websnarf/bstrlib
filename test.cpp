@@ -1613,6 +1613,66 @@ int ret = 0;
 #define bMultiConcat(dst,...)  bMultiConcatNeedNULLAsLastArgument((dst),##__VA_ARGS__,NULL)
 #define bMultiCatCstr(dst,...) bMultiCatCstrNeedNULLAsLastArgument((dst),##__VA_ARGS__,NULL)
 
+#define bGlue3_aux(a,b,c) a ## b ## c
+#define bGlue3(a,b,c)     bGlue3_aux(a,b,c)
+
+#if defined(_MSC_VER)
+#define _bDeclTbstrIdx(t,n,...) \
+	static unsigned char bGlue3(_btmpuc_,t,n)[] = {__VA_ARGS__, '\0'}; \
+	struct tagbstring t = { -32, sizeof(bGlue3(_btmpuc_,t,n))-1, bGlue3(_btmpuc_,t,n)}
+#define bDeclTbstr(t,...) _bDeclTbstrIdx(t,__COUNTER__,__VA_ARGS__)
+#else
+#define bDeclTbstr(t,...) \
+	static unsigned char bGlue3(_btmpuc_,t,__LINE__)[] = {__VA_ARGS__, '\0'}; \
+	struct tagbstring t = { -__LINE__, sizeof(bGlue3(_btmpuc_,t,__LINE__))-1, bGlue3(_btmpuc_,t,__LINE__)}
+#endif
+
+static int test32(void) {
+bstring b1 = bfromStatic ("a");
+bstring b2 = bfromStatic ("e");
+bstring b3 = bfromStatic ("i");
+bstring b4 = bfromStatic ("");
+int ret = 0;
+
+	printf ("TEST: bMultiCatCstr, bMultiConcat\n");
+
+	bMultiCatCstr(b1, "b", "c", "d");
+	bMultiCatCstr(b2, "f", "g", "h");
+	bMultiCatCstr(b3, "j", "k", "l");
+	bMultiConcat(b4, b1, b2, b3);
+
+	ret += 1 != biseqStatic (b1, "abcd");
+	ret += 1 != biseqStatic (b2, "efgh");
+	ret += 1 != biseqStatic (b3, "ijkl");
+	ret += 1 != biseqStatic (b4, "abcdefghijkl");
+
+	bdestroy (b1);
+	bdestroy (b2);
+	bdestroy (b3);
+	bdestroy (b4);
+
+	printf ("\t# failures: %d\n", ret);
+	return ret;
+}
+
+static int test33(void) {
+	bDeclTbstr (t1, 'H','e','l','l','o');
+	bDeclTbstr (t2, 32,'w','o','r','l','d');
+	bstring b = bfromStatic("[");
+	int ret;
+
+	printf ("TEST: bDeclTbstr\n");
+
+	bconcat (b, &t1);
+	bconcat (b, &t2);
+	bcatStatic (b, "]");
+	ret = 1 != biseqStatic (b, "[Hello world]");
+	bdestroy (b);
+
+	printf ("\t# failures: %d\n", ret);
+	return ret;
+}
+
 int main () {
 int ret = 0;
 
@@ -1652,6 +1712,8 @@ int ret = 0;
 	ret += test29 ();
 	ret += test30 ();
 	ret += test31 ();
+	ret += test32 ();
+	ret += test33 ();
 
 	printf ("# test failures: %d\n", ret);
 
