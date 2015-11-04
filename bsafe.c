@@ -1,7 +1,7 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2005, and is covered by the BSD open source 
- * license. Refer to the accompanying documentation for details on usage and 
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
+ * license. Refer to the accompanying documentation for details on usage and
  * license.
  */
 

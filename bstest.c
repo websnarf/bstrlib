@@ -1,7 +1,7 @@
 /*
  * This source file is part of the bstring string library.  This code was
- * written by Paul Hsieh in 2002-2007, and is covered by the BSD open source 
- * license. Refer to the accompanying documentation for details on usage and 
+ * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
+ * license. Refer to the accompanying documentation for details on usage and
  * license.
  */
 
@@ -439,7 +439,7 @@ int rv, ret = 0;
 
 		if (b1) ret += (b2->slen != b0->slen + b1->slen);
 		ret += ((0 != rv) && (b1 != NULL)) || ((0 == rv) && (b1 == NULL));
-		ret += (res == NULL) || ((int) strlen (res) > b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) > b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -536,7 +536,7 @@ int rv, ret = 0;
 		rv = bconchar (b0, c);
 		ret += (0 != rv);
 		ret += (b0->slen != b->slen + 1);
-		ret += (res == NULL) || ((int) strlen (res) > b0->slen) 
+		ret += (res == NULL) || ((int) strlen (res) > b0->slen)
 		       || (0 != memcmp (b0->data, res, b0->slen));
 		ret += b0->data[b0->slen] != '\0';
 		printf (".\tbconchar (%s, %c) = %s\n", dumpBstring (b), c, dumpBstring (b0));
@@ -727,11 +727,11 @@ int rv, x, ret = 0;
 	printf ("%d\n", rv);
 
 	if (b != NULL) {
-		if (rv >= 0) 
+		if (rv >= 0)
 			/* If the bdestroy was successful we have to assume
 			   the contents were "changed" */
 			x = 1;
-		else 
+		else
 			x = memcmp (&sb, b, sizeof sb);
 	} else x = !nochange;
 	ret += (rv != res);
@@ -1525,7 +1525,7 @@ bstring b, c;
 	bdestroy (b);
 
 	printf (".\tbformata (\"x\", \"%%s%%s%%s%%s%%s%%s%%s%%s\", ...) ...\n");
-	rv = bformata (b = bfromcstr ("x"), "%s%s%s%s%s%s%s%s", 
+	rv = bformata (b = bfromcstr ("x"), "%s%s%s%s%s%s%s%s",
 	               longBstring.data, longBstring.data,
 	               longBstring.data, longBstring.data,
 	               longBstring.data, longBstring.data,
@@ -1561,7 +1561,7 @@ bstring b, c;
 	bdestroy (b);
 
 	printf (".\tbassignformat (\"x\", \"%%s%%s%%s%%s%%s%%s%%s%%s\", ...) ...\n");
-	rv = bassignformat (b = bfromcstr ("x"), "%s%s%s%s%s%s%s%s", 
+	rv = bassignformat (b = bfromcstr ("x"), "%s%s%s%s%s%s%s%s",
 	               longBstring.data, longBstring.data,
 	               longBstring.data, longBstring.data,
 	               longBstring.data, longBstring.data,
@@ -2269,7 +2269,7 @@ int rv, ret = 0;
 
 		if (b1) ret += (b2->slen != b1->slen);
 		ret += ((0 != rv) && (b1 != NULL)) || ((0 == rv) && (b1 == NULL));
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -2450,7 +2450,7 @@ int rv, ret = 0;
 
 		if (s) ret += (b2->slen != b0->slen + (int) strlen (s));
 		ret += ((0 != rv) && (s != NULL)) || ((0 == rv) && (s == NULL));
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -2517,7 +2517,7 @@ int rv, ret = 0;
 			else ret += (b2->slen != b0->slen);
 		}
 		ret += ((0 != rv) && (s != NULL && len >= 0)) || ((0 == rv) && (s == NULL || len < 0));
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -2805,7 +2805,7 @@ int rv, ret = 0;
 
 		ret += (b2->slen != b0->slen);
 		ret += (0 != rv);
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -2867,7 +2867,7 @@ int rv, ret = 0;
 
 		ret += (b2->slen != b0->slen);
 		ret += (0 != rv);
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
@@ -3248,7 +3248,7 @@ int rv, ret = 0;
 
 		if (b1) ret += (b2->slen > len) | (b2->slen < 0);
 		ret += ((0 != rv) && (b1 != NULL)) || ((0 == rv) && (b1 == NULL));
-		ret += (res == NULL) || ((int) strlen (res) != b2->slen) 
+		ret += (res == NULL) || ((int) strlen (res) != b2->slen)
 		       || (0 != memcmp (b2->data, res, b2->slen));
 		ret += b2->data[b2->slen] != '\0';
 		bdestroy (b2);
