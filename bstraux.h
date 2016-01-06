@@ -76,6 +76,7 @@ extern bstring bUuDecodeEx (const_bstring src, int * badlines);
 extern bstring bUuEncode (const_bstring src);
 extern bstring bYEncode (const_bstring src);
 extern bstring bYDecode (const_bstring src);
+extern int bSGMLEncode (bstring b);
 
 /* Writable stream */
 typedef int (* bNwrite) (const void * buf, size_t elsize, size_t nelem, void * parm);

@@ -600,10 +600,10 @@ bstring b;
 	b = bfromcstralloc (256, "");
 	if (NULL == b || 0 > bsread (b, d, INT_MAX)) {
 		bdestroy (b);
-		bsclose (d);
-		bsclose (s);
-		return NULL;
+		b = NULL;
 	}
+	bsclose (d);
+	bsclose (s);
 	return b;
 }
 
@@ -836,6 +836,24 @@ int obl;
 		out = NULL;
 	}
 	return out;
+}
+
+/*  int bSGMLEncode (bstring b)
+ *
+ *  Change the string into a version that is quotable in SGML (HTML, XML).
+ */
+int bSGMLEncode (bstring b) {
+static struct tagbstring fr[4][2] = {
+	{ bsStatic("&"), bsStatic("&amp;") },
+	{ bsStatic("\""), bsStatic("&quot;") },
+	{ bsStatic("<"), bsStatic("&lt;") },
+	{ bsStatic(">"), bsStatic("&gt;") } };
+int i;
+	for (i = 0; i < 4; i++) {
+		int ret = bfindreplace (b, &fr[i][0], &fr[i][1], 0);
+		if (0 > ret) return ret;
+	}
+	return 0;
 }
 
 /*  bstring bStrfTime (const char * fmt, const struct tm * timeptr)

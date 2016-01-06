@@ -379,6 +379,23 @@ int i;
 	return ret;
 }
 
+int test14_aux(bstring b, const char* chkVal) {
+int ret = 0;
+	ret += 0 != bSGMLEncode (b);
+	ret += 1 != biseqcstr (b, chkVal);
+	return ret;
+}
+
+int test14 (void) {
+bstring b;
+int ret = 0;
+
+	printf ("TEST: bSGMLEncode.\n");
+	ret += test14_aux (b = bfromStatic ("<\"Hello, you, me, & world\">"), "&lt;&quot;Hello, you, me, &amp; world&quot;&gt;");
+	printf ("\t# failures: %d\n", ret);
+	return ret;
+}
+
 int main () {
 int ret = 0;
 
@@ -398,6 +415,7 @@ int ret = 0;
 	ret += test11 ();
 	ret += test12 ();
 	ret += test13 ();
+	ret += test14 ();
 
 	printf ("# test failures: %d\n", ret);
 
