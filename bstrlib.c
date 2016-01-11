@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <limits.h>
 #include "bstrlib.h"
 
 /* Optionally include a mechanism for debugging memory */
@@ -177,8 +178,9 @@ int balloc (bstring b, int olen) {
 int ballocmin (bstring b, int len) {
 	unsigned char * s;
 
-	if (b == NULL || b->data == NULL || (b->slen+1) < 0 || b->mlen <= 0 ||
-	    b->mlen < b->slen || len <= 0) {
+	if (b == NULL || b->data == NULL) return BSTR_ERR;
+	if (b->slen >= INT_MAX || b->slen < 0) return BSTR_ERR;
+	if (b->mlen <= 0 || b->mlen < b->slen || len <= 0) {
 		return BSTR_ERR;
 	}
 
@@ -555,7 +557,7 @@ size_t len;
 
 	a->slen = i;
 	len = strlen (str + i);
-	if (len > INT_MAX || i + len + 1 > INT_MAX ||
+	if (len + 1 > INT_MAX - i ||
 	    0 > balloc (a, (int) (i + len + 1))) return BSTR_ERR;
 	bBlockCopy (a->data + i, str + i, (size_t) len + 1);
 	a->slen += (int) len;
@@ -570,7 +572,7 @@ size_t len;
  */
 int bassignblk (bstring a, const void * s, int len) {
 	if (a == NULL || a->data == NULL || a->mlen < a->slen ||
-	    a->slen < 0 || a->mlen == 0 || NULL == s || len + 1 < 1)
+	    a->slen < 0 || a->mlen == 0 || NULL == s || len < 0 || len >= INT_MAX)
 		return BSTR_ERR;
 	if (len + 1 > a->mlen && 0 > balloc (a, len + 1)) return BSTR_ERR;
 	bBlockCopy (a->data, s, (size_t) len);
@@ -1620,8 +1622,10 @@ int pl, ret;
 ptrdiff_t pd;
 bstring aux = (bstring) b2;
 
-	if (pos < 0 || len < 0 || (pl = pos + len) < 0 || b1 == NULL ||
-	    b2 == NULL || b1->data == NULL || b2->data == NULL ||
+	if (pos < 0 || len < 0) return BSTR_ERR;
+	if (pos > INT_MAX - len) return BSTR_ERR; /* Overflow */
+	pl = pos + len;
+	if (b1 == NULL || b2 == NULL || b1->data == NULL || b2->data == NULL ||
 	    b1->slen < 0 || b2->slen < 0 || b1->mlen < b1->slen ||
 	    b1->mlen <= 0) return BSTR_ERR;
 
@@ -1762,11 +1766,15 @@ bstring auxr = (bstring) repl;
 		if (slen >= mlen - 1) {
 			int *t;
 			int sl;
+			/* Overflow */
+			if (mlen > (INT_MAX / sizeof(int *)) / 2) {
+				ret = BSTR_ERR;
+				goto done;
+			}
 			mlen += mlen;
 			sl = sizeof (int *) * mlen;
 			if (static_d == d) d = NULL; /* static_d cannot be realloced */
-			if (mlen <= 0 || sl < mlen ||
-			    NULL == (t = (int *) bstr__realloc (d, sl))) {
+			if (NULL == (t = (int *) bstr__realloc (d, sl))) {
 				ret = BSTR_ERR;
 				goto done;
 			}
@@ -2248,8 +2256,8 @@ struct tagbstring x;
 	if (s == NULL || s->buff == NULL || r == NULL || r->mlen <= 0
 	 || r->slen < 0 || r->mlen < r->slen || n <= 0) return BSTR_ERR;
 
+	if (n > INT_MAX - r->slen) return BSTR_ERR;
 	n += r->slen;
-	if (n <= 0) return BSTR_ERR;
 
 	l = s->buff->slen;
 
@@ -2387,8 +2395,8 @@ int i, c, v;
 	for (i = 0, c = 1; i < bl->qty; i++) {
 		v = bl->entry[i]->slen;
 		if (v < 0) return NULL;	/* Invalid input */
+		if (v > INT_MAX - c) return NULL;	/* Overflow */
 		c += v;
-		if (c < 0) return NULL;	/* Wrap around ?? */
 	}
 
 	b = (bstring) bstr__alloc (sizeof (struct tagbstring));
@@ -2406,9 +2414,9 @@ int i, c, v;
 	} else {
 		v = (bl->qty - 1) * len;
 		if ((bl->qty > 512 || len > 127) &&
-		    v / len != bl->qty - 1) return NULL; /* Wrap around ?? */
+		    v / len != bl->qty - 1) return NULL; /* Overflow */
+		if (v > INT_MAX - c) return NULL;	/* Overflow */
 		c += v;
-		if (c < v) return NULL; /* Wrap around ?? */
 		p = b->data = (unsigned char *) bstr__alloc (c);
 		if (p == NULL) {
 			bstr__free (b);
@@ -2667,7 +2675,7 @@ size_t nsz;
 }
 
 /*  int bsplitcb (const_bstring str, unsigned char splitChar, int pos,
- *	int (* cb) (void * parm, int ofs, int len), void * parm)
+ *                int (* cb) (void * parm, int ofs, int len), void * parm)
  *
  *  Iterate the set of disjoint sequential substrings over str divided by the
  *  character in splitChar.
@@ -2700,7 +2708,7 @@ int i, p, ret;
 }
 
 /*  int bsplitscb (const_bstring str, const_bstring splitStr, int pos,
- *	int (* cb) (void * parm, int ofs, int len), void * parm)
+ *                 int (* cb) (void * parm, int ofs, int len), void * parm)
  *
  *  Iterate the set of disjoint sequential substrings over str divided by any
  *  of the characters in splitStr.  An empty splitStr causes the whole str to
@@ -3129,9 +3137,13 @@ int n, r, l;
 	   tries to help set what the retry length should be. */
 
 	b->data[b->slen] = '\0';
-	if (r > count+1) l = r; else {
-		l = count+count;
-		if (count > l) l = INT_MAX;
+	if (r > count+1) {
+		l = r;
+	} else {
+		if (count > INT_MAX / 2)
+			l = INT_MAX;
+		else
+			l = count + count;
 	}
 	n = -l;
 	if (n > BSTR_ERR-1) n = BSTR_ERR-1;
