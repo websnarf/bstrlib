@@ -1,3 +1,4 @@
+
 /*
  * This source file is part of the bstring string library.  This code was
  * written by Paul Hsieh in 2002-2015, and is covered by the BSD open source
@@ -24,6 +25,10 @@
 #include <ctype.h>
 #include "bstrlib.h"
 #include "bstraux.h"
+
+#ifndef UNUSED
+#define UNUSED(x) (void)(x)
+#endif
 
 /*  bstring bTail (bstring b, int n)
  *
@@ -197,10 +202,10 @@ int i, l, c;
 }
 
 static size_t readNothing (void *buff, size_t elsize, size_t nelem, void *parm) {
-	buff = buff;
-	elsize = elsize;
-	nelem = nelem;
-	parm = parm;
+	UNUSED(buff);
+	UNUSED(elsize);
+	UNUSED(nelem);
+	UNUSED(parm);
 	return 0; /* Immediately indicate EOF. */
 }
 
