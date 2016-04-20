@@ -3448,6 +3448,14 @@ dedicate an expert to learn the internals of the library).  The library is
 committed to Unicode representation of its string data, and therefore cannot
 be used as a generic buffer library.
 
+SDS
+---
+
+Sds uses a strategy very similar to Libsrt.  However, it uses some dynamic
+headers to decrease the overhead for very small strings.  This requires an
+extra switch statement for access to each string attribute.  The source code
+appears to use gcc/clang extensions, and thus it is not portable.
+
 ===============================================================================
 
 Examples
