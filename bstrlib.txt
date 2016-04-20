@@ -1324,7 +1324,7 @@ The functions
     of this function, and performance varies wildly depending on the
     assumptions made.  For a complete list of bstring data type it is
     recommended that the C++ public std::vector<CBString> be used, since its
-    semantics are usage are more standard.
+    semantics and usage are more standard.
 
     ..........................................................................
 
