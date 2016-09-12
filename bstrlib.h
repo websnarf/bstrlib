@@ -36,6 +36,11 @@ extern "C" {
 typedef struct tagbstring * bstring;
 typedef const struct tagbstring * const_bstring;
 
+/* Version */
+#define BSTR_VER_MAJOR  1
+#define BSTR_VER_MINOR  0
+#define BSTR_VER_UPDATE 0
+
 /* Copy functions */
 #define cstr2bstr bfromcstr
 extern bstring bfromcstr (const char * str);

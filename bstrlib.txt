@@ -593,6 +593,33 @@ Note that these macros must be defined consistently throughout all modules
 that use bstrings or CBStrings including bstrlib.c, bstraux.c and
 bstrwrap.cpp.
 
+Version
+-------
+
+v1.0.0
+
+
+The version format v[Major].[Minor].[Update] is used to facilitate
+developers with backward compatibility in the core developer branch of the
+Better String Library.  This is also reflected in the macro symbols
+BSTR_VER_MAJOR, BSTR_VER_MINOR and BSTR_VER_UPDATE in the bstrlib.h file.
+Differences in the Major version imply that there has been a change in the
+API, and that a recompile and usage source changes may be necessary.
+Differences in Minor version imply that there has been an expansion of the
+API, that backward compatibility should be preserved and that at most a
+recompile is necessary (unless there is a namespace collision).  Differences
+in Update imply that no API change has occurred.
+
+Although ordered, there is no implication of lexical sequencing.  In
+particular, the Update number will not reset to 0 as the Major and Minor
+version numbers increment.
+
+So simple bug fixes will usually be reflected in a change in the Update
+number.  If new functions are available, the Minor value will increment.
+If any function changes its parameters, or if a function is removed, the
+Major value will increment.
+
+
 ===============================================================================
 
 Files
