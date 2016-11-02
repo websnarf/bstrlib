@@ -596,8 +596,7 @@ bstrwrap.cpp.
 Version
 -------
 
-v1.0.0
-
+Current release: v1.0.0
 
 The version format v[Major].[Minor].[Update] is used to facilitate
 developers with backward compatibility in the core developer branch of the
