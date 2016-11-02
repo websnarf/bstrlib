@@ -636,7 +636,7 @@ Base Unicode support:
 utf8util.c      - C implemention of generic utf8 parsing functions.
 utf8util.h      - C head file for generic utf8 parsing functions.
 buniutil.c      - C implemention utf8 bstring packing and unpacking functions.
-buniutil.c      - C header file for utf8 bstring functions.
+buniutil.h      - C header file for utf8 bstring functions.
 
 Extra utility functions:
 bstraux.c       - C example that implements trivial additional functions.
