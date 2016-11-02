@@ -3466,13 +3466,13 @@ only require a single allocation.  However, whenever a reallocation occurs,
 the header is replicated and the base pointer for the string is changed.
 That means references to the string are only valid so long as they are not
 resized after any such reference is cached.  The internal structure maintains
-a lot some state used to accelerate unicode manipulation.  This makes
+a lot some state used to accelerate unicode manipulation.  This state is
+dynamically updated according to usage (so, like Bstrlib, it supports both
+a binary mode and a Unicode mode basically all the time).  But this makes
 sustainable usage of the library essentially opaque.  This also creates a
 bottleneck for whatever extensions to the library one desires (write all
 extensions on top of the base library, put in a request to the author, or
-dedicate an expert to learn the internals of the library).  The library is
-committed to Unicode representation of its string data, and therefore cannot
-be used as a generic buffer library.
+dedicate an expert to learn the internals of the library).
 
 SDS
 ---
